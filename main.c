@@ -21,6 +21,9 @@
  *
 */
 void handle_arg(char *arg, int arg_no);
+void chip_security_checks();
+void os_security_checks();
+
 
 #define MODE 1 // the encrypt / decrypt mode IE caesar or raw bits
 #define CAESAR 0
@@ -46,6 +49,8 @@ char secret[MAX_SIZE_BYTES];
 char pad[MAX_SIZE_BYTES];
 
 int main(int argc, char **argv) {
+    chip_security_checks();
+    os_security_checks();
     int arg_no = 1;
     argc--; // Cut off the first arg
     while (argc-- != 0) {
@@ -137,7 +142,11 @@ void os_security_checks(){
 }
 
 void chip_security_checks(){
-
+#ifdef __X86_64__
+    warn_user("BE WARY USING A MODERN INTEL/AMD CHIP! THERE IS A KNOWN MANAGEMENT ENGINE BACKDOOR!");
+#elifdef __aarch64__
+    warn_user("BE WARY USING A MODERN ARM CHIP! THERE IS A KNOWN MANAGEMENT ENGINE BACKDOOR IN MANY VENDORS CHIPS!");
+#endif
 }
 
 
