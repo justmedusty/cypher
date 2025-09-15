@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include "stdlib.h"
@@ -21,32 +22,39 @@
  *
 */
 void handle_arg(char *arg, int arg_no);
+
 void chip_security_checks();
+
 void os_security_checks();
 
 
 #define MODE 1 // the encrypt / decrypt mode IE caesar or raw bits
+#define OPERATION 2
+#define SECRET 3
+#define PAD 4
+
+
 #define CAESAR 0
 #define BITS 1
 
-#define OPERATION 2
 #define ENCRYPT 0
 #define DECRYPT 1
-
-#define SECRET 3
-
-#define PAD 4
-
 //maximum size we will work with , this should just be text or small files not anything massive
 #define MAX_SIZE_BYTES 4096
 
+#define SETTINGS_FILE "/etc/keymaker.conf"
+
+
+#define OUTPUT_TERMINAL 0
+#define OUTPUT_FILE 1
 
 //internal state
-
+int output_mode = OUTPUT_TERMINAL;
 int mode = 0;
 int operation = 0;
 char secret[MAX_SIZE_BYTES];
 char pad[MAX_SIZE_BYTES];
+char output[MAX_SIZE_BYTES];
 
 int main(int argc, char **argv) {
     chip_security_checks();
@@ -64,56 +72,44 @@ int main(int argc, char **argv) {
 
 
 void handle_arg(char *arg, int arg_no) {
-
     switch (arg_no) {
-        case MODE :
+        case MODE:
 
-            if(strncmp(arg,"caesar",16) == 0){
-
-                 mode = CAESAR;
-
-            }else if (strncmp(arg,"bits",16) == 0){
-
+            if (strncmp(arg, "caesar", 16) == 0) {
+                mode = CAESAR;
+            } else if (strncmp(arg, "bits", 16) == 0) {
                 mode = BITS;
-
-            } else{
-
+            } else {
                 printf("An unknown value was passed for mode, acceptable options are 'caesar' or 'bits'");
                 exit(1);
-
             }
 
             break;
 
         case OPERATION:
 
-            if(strncmp(arg,"encrypt",16) == 0){
-
+            if (strncmp(arg, "encrypt", 16) == 0) {
                 operation = ENCRYPT;
-
-            }else if (strncmp(arg,"decrypt",16) == 0){
-
+            } else if (strncmp(arg, "decrypt", 16) == 0) {
                 operation = DECRYPT;
-
-            } else{
-
+            } else {
                 printf("An unknown value was passed for operation, acceptable options are 'encrypt' or 'decrypt'");
                 exit(1);
-
             }
 
             break;
 
         case SECRET:
-            strncpy(secret,arg,MAX_SIZE_BYTES);
+            strncpy(secret, arg,MAX_SIZE_BYTES);
             break;
 
         case PAD:
 
-            strncpy(secret,arg,MAX_SIZE_BYTES);
+            strncpy(secret, arg,MAX_SIZE_BYTES);
 
-            if((strnlen(secret,MAX_SIZE_BYTES) != strnlen(pad,MAX_SIZE_BYTES))){
-                printf("The provided secret and pad are not the same length, OTP only works with a key as long as the secret");
+            if ((strnlen(secret,MAX_SIZE_BYTES) != strnlen(pad,MAX_SIZE_BYTES))) {
+                printf(
+                    "The provided secret and pad are not the same length, OTP only works with a key as long as the secret");
                 exit(1);
             }
             break;
@@ -121,15 +117,28 @@ void handle_arg(char *arg, int arg_no) {
         default:
             printf("Unknown arg number encountered in handle_arg, exiting...");
             exit(1);
-
     }
-
-}
-void warn_user(char *warning){
-    printf("WARN:%s!\n",warning);
 }
 
-void os_security_checks(){
+void handle_output() {
+    if (output_mode == OUTPUT_TERMINAL) {
+        printf("%s\n", output);
+    } else if (output_mode == OUTPUT_FILE) {
+        FILE *f = fopen(SETTINGS_FILE, "rw");
+        if (f == NULL) {
+            printf("Unable to open settings file");
+            exit(1);
+        }
+        fseek(f, 0, SEEK_END);
+        fwrite(output, sizeof(char),MAX_SIZE_BYTES, f);
+    }
+}
+
+void warn_user(char *warning) {
+    printf("WARN:%s!\n", warning);
+}
+
+void os_security_checks() {
 #ifdef __WIN32__
     warn_user("BE WARY USING A WINDOWS MACHINE! IT IS NOT SECURE!");
 #elifdef __WIN64__
@@ -141,12 +150,29 @@ void os_security_checks(){
 #endif
 }
 
-void chip_security_checks(){
+void chip_security_checks() {
 #ifdef __X86_64__
     warn_user("BE WARY USING A MODERN INTEL/AMD CHIP! THERE IS A KNOWN MANAGEMENT ENGINE BACKDOOR!");
 #elifdef __aarch64__
     warn_user("BE WARY USING A MODERN ARM CHIP! THERE IS A KNOWN MANAGEMENT ENGINE BACKDOOR IN MANY VENDORS CHIPS!");
 #endif
+}
+
+
+char convert_to_upper_case(char c) {
+    if ((c >= 'a' || c <= 'z')) {
+        return ((c - 'a') + 'A');
+    } else return c;
+}
+
+char get_caesar_shit_char(char,uint8_t shift_value) {
+
+}
+
+void handle_caesar_cipher() {
+}
+
+void handle_raw_bits() {
 }
 
 
