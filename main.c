@@ -48,7 +48,12 @@ void os_security_checks();
 #define OUTPUT_TERMINAL 0
 #define OUTPUT_FILE 1
 
+char hex_chars[16] = {
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+};
+
 //internal state
+size_t length = 0;
 int output_mode = OUTPUT_TERMINAL;
 int mode = 0;
 int operation = 0;
@@ -112,6 +117,7 @@ void handle_arg(char *arg, int arg_no) {
                     "The provided secret and pad are not the same length, OTP only works with a key as long as the secret");
                 exit(1);
             }
+            length = strlen(secret);
             break;
 
         default:
@@ -165,14 +171,67 @@ char convert_to_upper_case(char c) {
     } else return c;
 }
 
-char get_caesar_shit_char(char,uint8_t shift_value) {
+char get_caesar_shit_char(char value, uint8_t shift_value) {
+    if (value > 'Z' || value < 'A') {
+        if (value >= 'a' && value <= 'z') {
+            return (char) ((convert_to_upper_case(value) + shift_value) % 26 + 'A');
+        }
+    } else if (value >= 'A' && value <= 'Z') {
+        return (char) ((value + shift_value) % 26) + 'A';
+    }
 
+    printf("Caesar cipher should have only lower or uppercase letters, found invalid character! Exiting...");
+    exit(1);
 }
 
 void handle_caesar_cipher() {
 }
 
 void handle_raw_bits() {
+    for (size_t i = 0; i < length; i++) {
+        output[i] = (char) (secret[i] ^ pad[i]);
+    }
+
+    if (operation == ENCRYPT) {
+        for (size_t i = 0; i < length; i++) {
+            if (i == 0) {
+                printf("0x");
+            }
+            if (output_mode == OUTPUT_TERMINAL) {
+                char c = output[i];
+                printf("%02X", c);
+                continue;
+            } else if (output_mode == OUTPUT_FILE) {
+                continue;
+            }
+        }
+        return;
+    }
+
+    if (operation == DECRYPT) {
+        for (size_t i = 0; i < length; i++) {
+            /**
+             * It is generally intended for this to be a string message, so it will printed out as such.
+             * It could be soemthing else, but otp is generally not used for that. Maybe I will add support
+             * for hex printing or something for decryption output but for now this will be it.
+             */
+            if (output[length] != '\0') {
+                if (length == MAX_SIZE_BYTES) {
+                    output[MAX_SIZE_BYTES - 1] = '\0';
+                } else {
+                    output[length] = '\0';
+                }
+            }
+            printf("%s", output);
+        }
+        return;
+    }
+
+    printf("This code was not meant to be reached, something is wrong and you should contact the developer\n");
+}
+
+
+char get_hex_char(uint8_t value) {
 }
 
 
