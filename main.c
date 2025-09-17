@@ -49,7 +49,7 @@ void os_security_checks();
 #define OUTPUT_FILE 1
 
 char hex_chars[16] = {
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+    '0', 1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 };
 
 //internal state
@@ -82,6 +82,8 @@ void handle_arg(char *arg, int arg_no) {
 
             if (strncmp(arg, "caesar", 16) == 0) {
                 mode = CAESAR;
+                printf("Caesar cipher is not yet implemented.\n");
+                exit(0);
             } else if (strncmp(arg, "bits", 16) == 0) {
                 mode = BITS;
             } else {
@@ -184,9 +186,6 @@ char get_caesar_shit_char(char value, uint8_t shift_value) {
     exit(1);
 }
 
-void handle_caesar_cipher() {
-}
-
 void handle_raw_bits() {
     for (size_t i = 0; i < length; i++) {
         output[i] = (char) (secret[i] ^ pad[i]);
@@ -228,10 +227,29 @@ void handle_raw_bits() {
     }
 
     printf("This code was not meant to be reached, something is wrong and you should contact the developer\n");
+    exit(1);
+}
+
+uint8_t convert_two_hex_chars_to_raw_value(const char c[2]) {
+    const uint8_t raw_value_1 = c[0];
+    const uint8_t raw_value_2 = c[1];
+
+    if ((raw_value_1 < '0' && raw_value_1 > '9' && raw_value_1 < 'A' && raw_value_1 > 'F') || (raw_value_2 < '0' && raw_value_2 > '9' && raw_value_2 < 'A' && raw_value_2 > 'F')) {
+        printf("Invalid character detected in convert_two_hex_chars_to_raw_value");
+        exit(1);
+    }
+
+
 }
 
 
 char get_hex_char(uint8_t value) {
+
+    if (value > 0xF) {
+        printf("get_hex_char: Value is out of range\n");
+        exit(1);
+    }
+    return hex_chars[value];
 }
 
 
