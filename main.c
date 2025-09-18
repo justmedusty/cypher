@@ -27,6 +27,7 @@ void chip_security_checks();
 
 void os_security_checks();
 
+void parse_secret(char *secret);
 
 #define MODE 1 // the encrypt / decrypt mode IE caesar or raw bits
 #define OPERATION 2
@@ -107,7 +108,7 @@ void handle_arg(char *arg, int arg_no) {
             break;
 
         case SECRET:
-            strncpy(secret, arg,MAX_SIZE_BYTES);
+            parse_secret(arg);
             break;
 
         case PAD:
@@ -250,6 +251,36 @@ char get_hex_char(uint8_t value) {
         exit(1);
     }
     return hex_chars[value];
+}
+
+/*
+ *  Secrets will be h
+ */
+void parse_secret(char *arg) {
+    size_t len = strlen(secret);
+
+    /*
+     *  The +2 is to account of the 0x and *2 since 1 byte will store 1 hex char which is 4 bits of data
+     */
+    if (len > ((MAX_SIZE_BYTES * 2) + 2)) {
+        printf("Secret is too big\n");
+        exit(1);
+    }
+
+    if (secret[0] != '0' && secret[1] != 'x') {
+        printf("Secret is not hexadecimal or does not have hexadecimal prefix! Exiting.\n");
+        exit(1);
+    }
+    /*
+     * Start at 2 to shave off the 0x prefix
+     */
+    for (size_t i = 2; i < len; i+=2) {
+        secret[i] = get_hex_char(arg[i]);
+    }
+
+    if (len % 2 != 0) {
+
+    }
 }
 
 
