@@ -241,7 +241,11 @@ uint8_t convert_two_hex_chars_to_raw_value(const char c[2]) {
     }
 
 
+
+
 }
+
+
 
 
 char get_hex_char(uint8_t value) {
@@ -275,12 +279,13 @@ void parse_secret(char *arg) {
      * Start at 2 to shave off the 0x prefix
      */
     for (size_t i = 2; i < len; i+=2) {
-        secret[i] = get_hex_char(arg[i]);
+        uint8_t beginning = arg[i];
+        uint8_t end = arg[i + 1];
+
+
     }
 
-    if (len % 2 != 0) {
 
-    }
 }
 
 
