@@ -231,24 +231,26 @@ void handle_raw_bits() {
     exit(1);
 }
 
-uint8_t convert_two_hex_chars_to_raw_value(const char c[2]) {
-    const uint8_t raw_value_1 = c[0];
-    const uint8_t raw_value_2 = c[1];
-
-    if ((raw_value_1 < '0' && raw_value_1 > '9' && raw_value_1 < 'A' && raw_value_1 > 'F') || (raw_value_2 < '0' && raw_value_2 > '9' && raw_value_2 < 'A' && raw_value_2 > 'F')) {
-        printf("Invalid character detected in convert_two_hex_chars_to_raw_value");
-        exit(1);
+uint8_t hex_char_to_int(char c) {
+    if (c >= '0' && c <= '9') {
+        return c - '0';
+    }
+    if (c >= 'A' && c <= 'F') {
+        return c - 'A' + 10;
     }
 
-
-
+    printf("hex character is not a valid hexadecimal character!\n");
+    exit(1);
 
 }
+uint8_t convert_two_hex_chars_to_raw_value(const char c[2]) {
+    const uint8_t raw_value_1 = hex_char_to_int(c[0]);
+    const uint8_t raw_value_2 = hex_char_to_int(c[1]);
 
+    return raw_value_1 << 4 | raw_value_2;
+}
 
-
-
-char get_hex_char(uint8_t value) {
+char get_hex_char_from_raw_value(uint8_t value) {
 
     if (value > 0xF) {
         printf("get_hex_char: Value is out of range\n");
