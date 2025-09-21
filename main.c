@@ -58,7 +58,7 @@ size_t length = 0;
 int output_mode = OUTPUT_TERMINAL;
 int mode = 0;
 int operation = 0;
-char secret[MAX_SIZE_BYTES];
+uint8_t secret[MAX_SIZE_BYTES];
 char pad[MAX_SIZE_BYTES];
 char output[MAX_SIZE_BYTES];
 
@@ -280,13 +280,15 @@ void parse_secret(char *arg) {
     /*
      * Start at 2 to shave off the 0x prefix
      */
+    uint64_t secret_index = 0;
+
     for (size_t i = 2; i < len; i+=2) {
-        uint8_t beginning = arg[i];
-        uint8_t end = arg[i + 1];
-
-
+        secret[secret_index++] = convert_two_hex_chars_to_raw_value(&arg[i]);
     }
 
+    if (len % 2 != 0) {
+        secret[secret_index++] = hex_char_to_int(arg[len - 1]);
+    }
 
 }
 
