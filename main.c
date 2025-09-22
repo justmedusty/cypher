@@ -27,12 +27,11 @@ void chip_security_checks();
 
 void os_security_checks();
 
-void parse_secret(char *secret);
+void parse_secret(char *arg);
 
-#define MODE 1 // the encrypt / decrypt mode IE caesar or raw bits
-#define OPERATION 2
-#define SECRET 3
-#define PAD 4
+#define OPERATION 1
+#define SECRET 2
+#define PAD 3
 
 
 #define CAESAR 0
@@ -58,7 +57,7 @@ size_t length = 0;
 int output_mode = OUTPUT_TERMINAL;
 int mode = 0;
 int operation = 0;
-uint8_t secret[MAX_SIZE_BYTES];
+char secret[MAX_SIZE_BYTES];
 char pad[MAX_SIZE_BYTES];
 char output[MAX_SIZE_BYTES];
 
@@ -79,20 +78,6 @@ int main(int argc, char **argv) {
 
 void handle_arg(char *arg, int arg_no) {
     switch (arg_no) {
-        case MODE:
-
-            if (strncmp(arg, "caesar", 16) == 0) {
-                mode = CAESAR;
-                printf("Caesar cipher is not yet implemented.\n");
-                exit(0);
-            } else if (strncmp(arg, "bits", 16) == 0) {
-                mode = BITS;
-            } else {
-                printf("An unknown value was passed for mode, acceptable options are 'caesar' or 'bits'");
-                exit(1);
-            }
-
-            break;
 
         case OPERATION:
 
@@ -165,26 +150,6 @@ void chip_security_checks() {
 #elifdef __aarch64__
     warn_user("BE WARY USING A MODERN ARM CHIP! THERE IS A KNOWN MANAGEMENT ENGINE BACKDOOR IN MANY VENDORS CHIPS!");
 #endif
-}
-
-
-char convert_to_upper_case(char c) {
-    if ((c >= 'a' || c <= 'z')) {
-        return ((c - 'a') + 'A');
-    } else return c;
-}
-
-char get_caesar_shit_char(char value, uint8_t shift_value) {
-    if (value > 'Z' || value < 'A') {
-        if (value >= 'a' && value <= 'z') {
-            return (char) ((convert_to_upper_case(value) + shift_value) % 26 + 'A');
-        }
-    } else if (value >= 'A' && value <= 'Z') {
-        return (char) ((value + shift_value) % 26) + 'A';
-    }
-
-    printf("Caesar cipher should have only lower or uppercase letters, found invalid character! Exiting...");
-    exit(1);
 }
 
 void handle_raw_bits() {
