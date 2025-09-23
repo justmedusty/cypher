@@ -21,18 +21,19 @@
  * How far you want to go to secure your privacy rights is up to you, but keep the aforementioned things in the forefront of your mind.
  *
 */
-void handle_arg(char *arg, int arg_no);
-
+void handle_arg(char* arg, int arg_no);
 void chip_security_checks();
-
+void handle_output();
 void os_security_checks();
-
-void parse_secret(char *arg);
+void parse_pad(char* arg);
+void parse_secret(char* arg);
+void handle_raw_bits();
 
 #define OPERATION 1
 #define SECRET 2
 #define PAD 3
 
+#define NUM_ARGS 4
 
 #define CAESAR 0
 #define BITS 1
@@ -49,7 +50,7 @@ void parse_secret(char *arg);
 #define OUTPUT_FILE 1
 
 char hex_chars[16] = {
-    '0', 1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 };
 
 //internal state
@@ -61,9 +62,18 @@ char secret[MAX_SIZE_BYTES];
 char pad[MAX_SIZE_BYTES];
 char output[MAX_SIZE_BYTES];
 
-int main(int argc, char **argv) {
+void help() {
+    printf("Usage: keymaker encrypt/decrypt \"secret\" pad\nPad MUST start with 0x and be in HEXADECIMAL FORMAT!\nIf secret is encrypted, it also MUST BE IN HEXADECIMAL FORMAT!\n");
+    exit(0);
+}
+
+int main(int argc, char** argv) {
     chip_security_checks();
     os_security_checks();
+
+    if (argc != NUM_ARGS) {
+        help();
+    }
     int arg_no = 1;
     argc--; // Cut off the first arg
     while (argc-- != 0) {
@@ -71,56 +81,53 @@ int main(int argc, char **argv) {
         arg_no++;
     }
 
-
+    handle_raw_bits();
+    printf("Done\n");
     return 0;
 }
 
 
-void handle_arg(char *arg, int arg_no) {
+void handle_arg(char* arg, int arg_no) {
     switch (arg_no) {
+    case OPERATION:
 
-        case OPERATION:
-
-            if (strncmp(arg, "encrypt", 16) == 0) {
-                operation = ENCRYPT;
-            } else if (strncmp(arg, "decrypt", 16) == 0) {
-                operation = DECRYPT;
-            } else {
-                printf("An unknown value was passed for operation, acceptable options are 'encrypt' or 'decrypt'");
-                exit(1);
-            }
-
-            break;
-
-        case SECRET:
-            parse_secret(arg);
-            break;
-
-        case PAD:
-
-            strncpy(secret, arg,MAX_SIZE_BYTES);
-
-            if ((strnlen(secret,MAX_SIZE_BYTES) != strnlen(pad,MAX_SIZE_BYTES))) {
-                printf(
-                    "The provided secret and pad are not the same length, OTP only works with a key as long as the secret");
-                exit(1);
-            }
-            length = strlen(secret);
-            break;
-
-        default:
-            printf("Unknown arg number encountered in handle_arg, exiting...");
+        if (strncmp(arg, "encrypt", 16) == 0) {
+            operation = ENCRYPT;
+        }
+        else if (strncmp(arg, "decrypt", 16) == 0) {
+            operation = DECRYPT;
+        }
+        else {
+            printf("An unknown value was passed for operation, acceptable options are 'encrypt' or 'decrypt'\n");
+            help();
             exit(1);
+        }
+
+        break;
+
+    case SECRET:
+        parse_secret(arg);
+        break;
+
+    case PAD:
+        parse_pad(arg);
+        break;
+
+    default:
+        printf("Unknown arg number encountered in handle_arg, exiting...\n");
+        help();
+        exit(1);
     }
 }
 
 void handle_output() {
     if (output_mode == OUTPUT_TERMINAL) {
         printf("%s\n", output);
-    } else if (output_mode == OUTPUT_FILE) {
-        FILE *f = fopen(SETTINGS_FILE, "rw");
+    }
+    else if (output_mode == OUTPUT_FILE) {
+        FILE* f = fopen(SETTINGS_FILE, "rw");
         if (f == NULL) {
-            printf("Unable to open settings file");
+            printf("Unable to open settings file\n");
             exit(1);
         }
         fseek(f, 0, SEEK_END);
@@ -128,7 +135,7 @@ void handle_output() {
     }
 }
 
-void warn_user(char *warning) {
+void warn_user(char* warning) {
     printf("WARN:%s!\n", warning);
 }
 
@@ -154,7 +161,7 @@ void chip_security_checks() {
 
 void handle_raw_bits() {
     for (size_t i = 0; i < length; i++) {
-        output[i] = (char) (secret[i] ^ pad[i]);
+        output[i] = (char)(secret[i] ^ pad[i]);
     }
 
     if (operation == ENCRYPT) {
@@ -164,9 +171,12 @@ void handle_raw_bits() {
             }
             if (output_mode == OUTPUT_TERMINAL) {
                 char c = output[i];
+                printf("%s",c);
                 printf("%02X", c);
                 continue;
-            } else if (output_mode == OUTPUT_FILE) {
+            }
+            else if (output_mode == OUTPUT_FILE) {
+                printf("File output not yet implemented\n");
                 continue;
             }
         }
@@ -183,7 +193,8 @@ void handle_raw_bits() {
             if (output[length] != '\0') {
                 if (length == MAX_SIZE_BYTES) {
                     output[MAX_SIZE_BYTES - 1] = '\0';
-                } else {
+                }
+                else {
                     output[length] = '\0';
                 }
             }
@@ -205,9 +216,10 @@ uint8_t hex_char_to_int(char c) {
     }
 
     printf("hex character is not a valid hexadecimal character!\n");
+    help();
     exit(1);
-
 }
+
 uint8_t convert_two_hex_chars_to_raw_value(const char c[2]) {
     const uint8_t raw_value_1 = hex_char_to_int(c[0]);
     const uint8_t raw_value_2 = hex_char_to_int(c[1]);
@@ -216,9 +228,9 @@ uint8_t convert_two_hex_chars_to_raw_value(const char c[2]) {
 }
 
 char get_hex_char_from_raw_value(uint8_t value) {
-
     if (value > 0xF) {
         printf("get_hex_char: Value is out of range\n");
+        help();
         exit(1);
     }
     return hex_chars[value];
@@ -227,19 +239,27 @@ char get_hex_char_from_raw_value(uint8_t value) {
 /*
  *  Secrets will be h
  */
-void parse_secret(char *arg) {
+void parse_secret(char* arg) {
     size_t len = strlen(secret);
+
+    if (mode == ENCRYPT) {
+        for (size_t i = 0; i < length; i++) {
+            secret[i] = arg[i];
+        }
+        return;
+    }
 
     /*
      *  The +2 is to account of the 0x and *2 since 1 byte will store 1 hex char which is 4 bits of data
      */
     if (len > ((MAX_SIZE_BYTES * 2) + 2)) {
-        printf("Secret is too big\n");
+        printf("Secret is too big, it must match the size of the pad\n");
         exit(1);
     }
 
     if (secret[0] != '0' && secret[1] != 'x') {
-        printf("Secret is not hexadecimal or does not have hexadecimal prefix! Exiting.\n");
+        printf("Encrypted secret is not hexadecimal or does not have hexadecimal prefix! Exiting.\n");
+        help();
         exit(1);
     }
     /*
@@ -247,12 +267,42 @@ void parse_secret(char *arg) {
      */
     uint64_t secret_index = 0;
 
-    for (size_t i = 2; i < len; i+=2) {
+    for (size_t i = 2; i < len; i += 2) {
         secret[secret_index++] = convert_two_hex_chars_to_raw_value(&arg[i]);
     }
 
     if (len % 2 != 0) {
         secret[secret_index++] = hex_char_to_int(arg[len - 1]);
+    }
+}
+
+void parse_pad(char* arg) {
+    /*
+  *  The +2 is to account of the 0x and *2 since 1 byte will store 1 hex char which is 4 bits of data
+  */
+    uint64_t len = strlen(arg);
+    if (len > ((MAX_SIZE_BYTES * 2) + 2)) {
+        printf("Pad is too big, it must match the size of the secret\n");
+        exit(1);
+    }
+
+    if (arg[0] != '0' && arg[1] != 'x') {
+        printf("Pad is not hexadecimal or does not have hexadecimal prefix! Exiting.\n");
+        help();
+        exit(1);
+    }
+
+    /*
+    * Start at 2 to shave off the 0x prefix
+    */
+    uint64_t pad_index = 0;
+
+    for (size_t i = 2; i < len; i += 2) {
+        pad[pad_index++] = convert_two_hex_chars_to_raw_value(&arg[i]);
+    }
+
+    if (len % 2 != 0) {
+         pad[pad_index++] = hex_char_to_int(arg[len - 1]);
     }
 
 }
