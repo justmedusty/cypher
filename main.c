@@ -63,7 +63,7 @@ char pad[MAX_SIZE_BYTES];
 char output[MAX_SIZE_BYTES];
 
 void help() {
-    printf("Usage: keymaker encrypt/decrypt \"secret\" pad\nPad MUST start with 0x and be in HEXADECIMAL FORMAT!\nIf secret is encrypted, it also MUST BE IN HEXADECIMAL FORMAT!\n");
+    printf("\nUsage: keymaker encrypt/decrypt \"secret\" pad\nPad MUST start with 0x and be in HEXADECIMAL FORMAT!\nIf secret is encrypted, it also MUST BE IN HEXADECIMAL FORMAT!\n");
     exit(0);
 }
 
@@ -152,7 +152,7 @@ void os_security_checks() {
 }
 
 void chip_security_checks() {
-#ifdef __X86_64__
+#ifdef __x86_64__
     warn_user("BE WARY USING A MODERN INTEL/AMD CHIP! THERE IS A KNOWN MANAGEMENT ENGINE BACKDOOR!");
 #elifdef __aarch64__
     warn_user("BE WARY USING A MODERN ARM CHIP! THERE IS A KNOWN MANAGEMENT ENGINE BACKDOOR IN MANY VENDORS CHIPS!");
@@ -274,6 +274,8 @@ void parse_secret(char* arg) {
     if (len % 2 != 0) {
         secret[secret_index++] = hex_char_to_int(arg[len - 1]);
     }
+
+    length = secret_index;
 }
 
 void parse_pad(char* arg) {
@@ -287,7 +289,7 @@ void parse_pad(char* arg) {
     }
 
     if (arg[0] != '0' && arg[1] != 'x') {
-        printf("Pad is not hexadecimal or does not have hexadecimal prefix! Exiting.\n");
+        printf("Pad is not hexadecimal or does not have hexadecimal prefix! Exiting. Arg is %s\n",arg);
         help();
         exit(1);
     }
@@ -303,6 +305,12 @@ void parse_pad(char* arg) {
 
     if (len % 2 != 0) {
          pad[pad_index++] = hex_char_to_int(arg[len - 1]);
+    }
+
+    if (pad_index != length) {
+        printf("The parsed secret and pad bits are not the same length!\n");
+        help();
+        exit(1);
     }
 
 }
