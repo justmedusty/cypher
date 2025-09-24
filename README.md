@@ -29,7 +29,7 @@ then destroyed. You must pass the keys off in secure manner, you can preselect k
 
 I recommend using a linux operating system with my simple key generator tool here : https://github.com/justmedusty/keymaker
 
-## Here is an example of maximum security:
+# Here is an example of maximum security:
 - Offline (no radio transceiver onboard ideally, but it is okay if there is just ensure it's offline) rv64 or rv32 (could be an old mips, ppc like ps3 linux any old chip that does not have a management engine) to run this actual program alongside keymaker.
 
 - Generate the key and encrypt the message PURELY in volatile memory, do not EVER let the unencrypted message touch the disk it should only ever touch terminal buffers and be cleared shortly after
