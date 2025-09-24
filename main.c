@@ -171,7 +171,9 @@ void handle_raw_bits() {
     }
 
     if (operation == ENCRYPT) {
+        DEBUG_PRINT("handle_raw_bits: ENCRYPT branch: Length is %lu\n",length);
         for (size_t i = 0; i < length; i++) {
+
             if (i == 0) {
                 printf("0x");
             }
@@ -186,6 +188,7 @@ void handle_raw_bits() {
                 continue;
             }
         }
+        printf("\n");
         return;
     }
 
@@ -304,7 +307,7 @@ void parse_pad(char* arg) {
     */
     uint64_t pad_index = 0;
 
-    for (size_t i = 2; i < len; i += 2) {
+    for (size_t i = 2; i < length * 2; i += 2) {
         if (i + 1 == len) {
             pad[pad_index++] = hex_char_to_int(arg[i]);
             break;
@@ -312,11 +315,16 @@ void parse_pad(char* arg) {
         pad[pad_index++] = convert_two_hex_chars_to_raw_value(&arg[i]);
     }
 
-    if (len % 2 != 0) {
-        pad[pad_index++] = hex_char_to_int(arg[len - 1]);
+    if (length % 2 != 0) {
+        if (pad_index == len) {
+            printf("Pad is too short!");
+            help();
+            exit(1);
+        }
+        pad[pad_index++] = hex_char_to_int(arg[length - 1]);
     }
-
-    if (pad_index > length) {
+    DEBUG_PRINT("parse_pad: pad_index is %lu while length is %lu\n",pad_index,length);
+    if (pad_index < length) {
         printf("The pad is too short! Length of pad is %lu : secret %lu\n", pad_index,
                length);
         help();
