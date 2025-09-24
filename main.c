@@ -49,6 +49,12 @@ void handle_raw_bits();
 #define OUTPUT_TERMINAL 0
 #define OUTPUT_FILE 1
 
+#ifdef _DEBUG_
+#define DEBUG_PRINT(...) printf(__VA_ARGS__)
+#else
+#define DEBUG_PRINT(...) ((void)0)
+#endif
+
 char hex_chars[16] = {
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 };
@@ -56,14 +62,14 @@ char hex_chars[16] = {
 //internal state
 size_t length = 0;
 int output_mode = OUTPUT_TERMINAL;
-int mode = 0;
 int operation = 0;
 char secret[MAX_SIZE_BYTES];
 char pad[MAX_SIZE_BYTES];
 char output[MAX_SIZE_BYTES];
 
 void help() {
-    printf("\nUsage: keymaker encrypt/decrypt \"secret\" pad\nPad MUST start with 0x and be in HEXADECIMAL FORMAT!\nIf secret is encrypted, it also MUST BE IN HEXADECIMAL FORMAT!\n");
+    printf(
+        "\nUsage: keymaker encrypt/decrypt \"secret\" pad\nPad must start with 0x and be in HEXADECIMAL FORMAT!\nIf secret is encrypted, it also MUST BE IN HEXADECIMAL FORMAT!\n");
     exit(0);
 }
 
@@ -82,7 +88,6 @@ int main(int argc, char** argv) {
     }
 
     handle_raw_bits();
-    printf("Done\n");
     return 0;
 }
 
@@ -141,25 +146,26 @@ void warn_user(char* warning) {
 
 void os_security_checks() {
 #ifdef __WIN32__
-    warn_user("BE WARY USING A WINDOWS MACHINE! IT IS NOT SECURE!");
+    warn_user("Be wary using a windows machine, it is inherently insecure!");
 #elifdef __WIN64__
-    warn_user("BE WARY USING A WINDOWS MACHINE! IT IS NOT SECURE!");
+    warn_user("Be wary using a windows machine, it is inherently insecure!");
 #elifdef __APPLE__
-    warn_user("BE WARY USING A MAC MACHINE! IT IS NOT SECURE!");
+    warn_user("Be wary using a mac machine, it is inherently insecure!");
 #elifdef __ANDROID__
-    warn_user("BE WARY USING AN ANDROID MACHINE! IT IS NOT SECURE!");
+    warn_user("Be wary using a windows machine, it is inherently insecure!");
 #endif
 }
 
 void chip_security_checks() {
 #ifdef __x86_64__
-    warn_user("BE WARY USING A MODERN INTEL/AMD CHIP! THERE IS A KNOWN MANAGEMENT ENGINE BACKDOOR!");
+    warn_user("Be wary using modern intel or amd chips, they have a known management engine backdoor. If this secret is of life or death stakes, do not use this machine");
 #elifdef __aarch64__
-    warn_user("BE WARY USING A MODERN ARM CHIP! THERE IS A KNOWN MANAGEMENT ENGINE BACKDOOR IN MANY VENDORS CHIPS!");
+    warn_user("Be wary using modern arm chips, many of them have a known management engine backdoor. If this secret is of life or death stakes, do not use this machine");
 #endif
 }
 
 void handle_raw_bits() {
+    DEBUG_PRINT("handle_raw_bits: length : %lu\n",length);
     for (size_t i = 0; i < length; i++) {
         output[i] = (char)(secret[i] ^ pad[i]);
     }
@@ -171,12 +177,12 @@ void handle_raw_bits() {
             }
             if (output_mode == OUTPUT_TERMINAL) {
                 char c = output[i];
-                printf("%s",c);
                 printf("%02X", c);
                 continue;
             }
             else if (output_mode == OUTPUT_FILE) {
                 printf("File output not yet implemented\n");
+                exit(0);
                 continue;
             }
         }
@@ -184,22 +190,21 @@ void handle_raw_bits() {
     }
 
     if (operation == DECRYPT) {
-        for (size_t i = 0; i < length; i++) {
-            /**
-             * It is generally intended for this to be a string message, so it will printed out as such.
-             * It could be soemthing else, but otp is generally not used for that. Maybe I will add support
-             * for hex printing or something for decryption output but for now this will be it.
-             */
-            if (output[length] != '\0') {
-                if (length == MAX_SIZE_BYTES) {
-                    output[MAX_SIZE_BYTES - 1] = '\0';
-                }
-                else {
-                    output[length] = '\0';
-                }
+        /**
+         * It is generally intended for this to be a string message, so it will printed out as such.
+         * It could be soemthing else, but otp is generally not used for that. Maybe I will add support
+         * for hex printing or something for decryption output but for now this will be it.
+         */
+        if (output[length] != '\0') {
+            if (length == MAX_SIZE_BYTES) {
+                output[MAX_SIZE_BYTES - 1] = '\0';
             }
-            printf("%s", output);
+            else {
+                output[length] = '\0';
+            }
         }
+        printf("Secret: %s\n", output);
+
         return;
     }
 
@@ -215,7 +220,7 @@ uint8_t hex_char_to_int(char c) {
         return c - 'A' + 10;
     }
 
-    printf("hex character is not a valid hexadecimal character!\n");
+    printf("Hex character is not a valid hexadecimal character! Char : %lu\n",(uint64_t) c);
     help();
     exit(1);
 }
@@ -240,12 +245,12 @@ char get_hex_char_from_raw_value(uint8_t value) {
  *  Secrets will be h
  */
 void parse_secret(char* arg) {
-    size_t len = strlen(secret);
-
-    if (mode == ENCRYPT) {
-        for (size_t i = 0; i < length; i++) {
+    size_t len = strlen(arg);
+    if (operation == ENCRYPT) {
+        for (size_t i = 0; i < len; i++) {
             secret[i] = arg[i];
         }
+        length = len;
         return;
     }
 
@@ -257,7 +262,7 @@ void parse_secret(char* arg) {
         exit(1);
     }
 
-    if (secret[0] != '0' && secret[1] != 'x') {
+    if (arg[0] != '0' && arg[1] != 'x') {
         printf("Encrypted secret is not hexadecimal or does not have hexadecimal prefix! Exiting.\n");
         help();
         exit(1);
@@ -284,12 +289,12 @@ void parse_pad(char* arg) {
   */
     uint64_t len = strlen(arg);
     if (len > ((MAX_SIZE_BYTES * 2) + 2)) {
-        printf("Pad is too big, it must match the size of the secret\n");
+        printf("Pad is too big, max size is 4096 bytes\n");
         exit(1);
     }
 
     if (arg[0] != '0' && arg[1] != 'x') {
-        printf("Pad is not hexadecimal or does not have hexadecimal prefix! Exiting. Arg is %s\n",arg);
+        printf("Pad is not hexadecimal or does not have hexadecimal prefix! Exiting. Arg is %s\n", arg);
         help();
         exit(1);
     }
@@ -300,19 +305,23 @@ void parse_pad(char* arg) {
     uint64_t pad_index = 0;
 
     for (size_t i = 2; i < len; i += 2) {
+        if (i + 1 == len) {
+            pad[pad_index++] = hex_char_to_int(arg[i]);
+            break;
+        }
         pad[pad_index++] = convert_two_hex_chars_to_raw_value(&arg[i]);
     }
 
     if (len % 2 != 0) {
-         pad[pad_index++] = hex_char_to_int(arg[len - 1]);
+        pad[pad_index++] = hex_char_to_int(arg[len - 1]);
     }
 
-    if (pad_index != length) {
-        printf("The parsed secret and pad bits are not the same length!\n");
+    if (pad_index > length) {
+        printf("The pad is too short! Length of pad is %lu : secret %lu\n", pad_index,
+               length);
         help();
         exit(1);
     }
-
 }
 
 
