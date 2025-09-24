@@ -43,12 +43,6 @@ void handle_raw_bits();
 //maximum size we will work with , this should just be text or small files not anything massive
 #define MAX_SIZE_BYTES 4096
 
-#define SETTINGS_FILE "/etc/keymaker.conf"
-
-
-#define OUTPUT_TERMINAL 0
-#define OUTPUT_FILE 1
-
 #ifdef _DEBUG_
 #define DEBUG_PRINT(...) printf(__VA_ARGS__)
 #else
@@ -61,7 +55,6 @@ char hex_chars[16] = {
 
 //internal state
 size_t length = 0;
-int output_mode = OUTPUT_TERMINAL;
 int operation = 0;
 char secret[MAX_SIZE_BYTES];
 char pad[MAX_SIZE_BYTES];
@@ -125,21 +118,6 @@ void handle_arg(char* arg, int arg_no) {
     }
 }
 
-void handle_output() {
-    if (output_mode == OUTPUT_TERMINAL) {
-        printf("%s\n", output);
-    }
-    else if (output_mode == OUTPUT_FILE) {
-        FILE* f = fopen(SETTINGS_FILE, "rw");
-        if (f == NULL) {
-            printf("Unable to open settings file\n");
-            exit(1);
-        }
-        fseek(f, 0, SEEK_END);
-        fwrite(output, sizeof(char),MAX_SIZE_BYTES, f);
-    }
-}
-
 void warn_user(char* warning) {
     printf("WARN:%s!\n", warning);
 }
@@ -158,35 +136,28 @@ void os_security_checks() {
 
 void chip_security_checks() {
 #ifdef __x86_64__
-    warn_user("Be wary using modern intel or amd chips, they have a known management engine backdoor. If this secret is of life or death stakes, do not use this machine");
+    warn_user(
+        "Be wary using modern intel or amd chips, they have a known management engine backdoor. If this secret is of life or death stakes, do not use this machine");
 #elifdef __aarch64__
-    warn_user("Be wary using modern arm chips, many of them have a known management engine backdoor. If this secret is of life or death stakes, do not use this machine");
+    warn_user(
+        "Be wary using modern arm chips, many of them have a known management engine backdoor. If this secret is of life or death stakes, do not use this machine");
 #endif
 }
 
 void handle_raw_bits() {
-    DEBUG_PRINT("handle_raw_bits: length : %lu\n",length);
+    DEBUG_PRINT("handle_raw_bits: length : %lu\n", length);
     for (size_t i = 0; i < length; i++) {
         output[i] = (char)(secret[i] ^ pad[i]);
     }
 
     if (operation == ENCRYPT) {
-        DEBUG_PRINT("handle_raw_bits: ENCRYPT branch: Length is %lu\n",length);
-        for (size_t i = 0; i < length; i++) {
 
-            if (i == 0) {
-                printf("0x");
-            }
-            if (output_mode == OUTPUT_TERMINAL) {
-                char c = output[i];
-                printf("%02X", c);
-                continue;
-            }
-            else if (output_mode == OUTPUT_FILE) {
-                printf("File output not yet implemented\n");
-                exit(0);
-                continue;
-            }
+        DEBUG_PRINT("handle_raw_bits: ENCRYPT branch: Length is %lu\n", length);
+        printf("0x");
+        for (size_t i = 0; i < length; i++) {
+            char c = output[i];
+            printf("%02X", c);
+            continue;
         }
         printf("\n");
         return;
@@ -224,7 +195,7 @@ uint8_t hex_char_to_int(const char c) {
         return c - 'A' + 10;
     }
 
-    printf("Hex character is not a valid hexadecimal character! Char : %lu\n",(uint64_t) c);
+    printf("Hex character is not a valid hexadecimal character! Char : %lu\n", (uint64_t)c);
     help();
     exit(1);
 }
@@ -330,7 +301,7 @@ void parse_pad(char* arg) {
         }
         pad[pad_index++] = hex_char_to_int(arg[length - 1]);
     }
-    DEBUG_PRINT("parse_pad: pad_index is %lu while length is %lu\n",pad_index,length);
+    DEBUG_PRINT("parse_pad: pad_index is %lu while length is %lu\n", pad_index, length);
     if (pad_index < length) {
         printf("The pad is too short! Length of pad is %lu : secret %lu\n", pad_index,
                length);

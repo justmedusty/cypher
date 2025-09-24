@@ -3,4 +3,4 @@ project(keymaker)
 
 set(CMAKE_CXX_STANDARD 26)
 
-add_executable(keymaker main.c)
+add_executable(cypher main.c)
