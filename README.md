@@ -51,7 +51,11 @@ I recommend using a linux operating system with my simple key generator tool her
 
 - If you are storing even encrypted pads on disk and the stakes are VERY high, you will want to write over the physical blocks it occupied many times (10-20 times just to be absolutely safe)
 
+- It should be noted that for your encryption of pads, you should ALWAYS use AES 256 for your symmetric cipher, AES 128 is not quantum safe.
+
+- It may be advisable to immediately power cycle your offline controlled arch hardware after decryption in volatile memory to be absolutely certain no side channel attacks can take place
+
 
 # Final Note
-This example is very extreme, and most people will not care to go that far, it is just meant as an illustration for how to use my tool pair as securely as possible. Your privacy is in your hands and only you know the stakes, make your own decisions but use your brain and don't give in to more than a reasonable compromise given your situation. The usefulness and security of these tools is entirely up to you, if you are just trying to hide passwords from someone you share your computer with, you could use this to hide it with relative ease assuming they are not super saavy. Just hiding your facebook password from a roommate you share a computer withcould be as simple as running cypher encrypt "myfaceB00kPassword123" 0x123456789ABCDEF123456789ABCDEF and storing that resulting hex value on disk, being able to easily remember the hex value. 
+This example is very extreme, and most people will not care to go that far, it is just meant as an illustration for how to use my tool pair as securely as possible. Your privacy is in your hands and only you know the stakes, make your own decisions but use your brain and don't give in to more than a reasonable compromise given your situation. The usefulness and security of these tools is entirely up to you, if you are just trying to hide passwords from someone you share your computer with, you could use this to hide it with relative ease assuming they are not super saavy. Just hiding your facebook password from a roommate you share a computer withcould be as simple as running cypher encrypt "myfaceB00kPassword123" 0x123456789ABCDEF123456789ABCDEF and storing that resulting hex value on disk, being able to easily remember the hex value. However, if a nation state is on your tail, you will need the full shebang.
 
