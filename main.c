@@ -199,6 +199,7 @@ void handle_raw_bits() {
          * for hex printing or something for decryption output but for now this will be it.
          */
         if (output[length] != '\0') {
+            DEBUG_PRINT("Entered output \0 branch in decrypt output\n");
             if (length == MAX_SIZE_BYTES) {
                 output[MAX_SIZE_BYTES - 1] = '\0';
             }
@@ -215,7 +216,7 @@ void handle_raw_bits() {
     exit(1);
 }
 
-uint8_t hex_char_to_int(char c) {
+uint8_t hex_char_to_int(const char c) {
     if (c >= '0' && c <= '9') {
         return c - '0';
     }
@@ -235,7 +236,7 @@ uint8_t convert_two_hex_chars_to_raw_value(const char c[2]) {
     return raw_value_1 << 4 | raw_value_2;
 }
 
-char get_hex_char_from_raw_value(uint8_t value) {
+char get_hex_char_from_raw_value(const uint8_t value) {
     if (value > 0xF) {
         printf("get_hex_char: Value is out of range\n");
         help();
@@ -296,6 +297,11 @@ void parse_pad(char* arg) {
         exit(1);
     }
 
+    if (len < (length * 2)) {
+        printf("Pad is too short! Exiting...\n");
+        exit(1);
+    }
+
     if (arg[0] != '0' && arg[1] != 'x') {
         printf("Pad is not hexadecimal or does not have hexadecimal prefix! Exiting. Arg is %s\n", arg);
         help();
@@ -307,8 +313,9 @@ void parse_pad(char* arg) {
     */
     uint64_t pad_index = 0;
 
+
     for (size_t i = 2; i < length * 2; i += 2) {
-        if (i + 1 == len) {
+        if (i + 1 == length * 2) {
             pad[pad_index++] = hex_char_to_int(arg[i]);
             break;
         }
@@ -327,7 +334,6 @@ void parse_pad(char* arg) {
     if (pad_index < length) {
         printf("The pad is too short! Length of pad is %lu : secret %lu\n", pad_index,
                length);
-        help();
         exit(1);
     }
 }
