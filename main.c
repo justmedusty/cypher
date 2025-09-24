@@ -1,26 +1,28 @@
+
+/*
+Cypher : a cli tool for encrypting and decrypting secret messages using OTP, intended for relatively short ascii messages
+Copyright (C) 2025 Dustyn Gibb
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+
+*/
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include "stdlib.h"
-/*
- * Key Maker
- * Yes, that key maker.
- *
- *
- * Will be utilized like so : ./keymaker --caesar/bits (caesar will use an OTP caesar cipher, bits will operate on raw bits) --encrypt/decrypt  secret (text to be encrypted or decrypted) pad (secret one time pad)
- *
- * Pad needs to be generated in a CRYPTOGRAPHICALLY SECURE MANNER!!!!!!!!!!!!!!!!!
- * Needs to be shared via SECURE AND COVERT MEANS! Think ultrasonic RF bursts, steganography, physical meeting with no words spoken only folded papers exchanged, etc.
- *
- * Ideally, the machine doing the encrypting and decrypting should be a dedicated device running linux or bsd WITHOUT an intel or amd chip inside (your best bet would be something like an old 32 bit mips, powerpc, something along these lines) with no wireless or bluetooth
- * capabilities onboard whatsoever. It should have no ethernet connection either, it should be entirely offline, and you should use a usb stick to copy the encrypted message to an insecure device which you can use to send the message over the internet.
- * BSD may be more ideal than linux, I will leave this decision up to you.
- *
- * After using a pad to decrypt a message, you should physically destroy the pad
- *
- * How far you want to go to secure your privacy rights is up to you, but keep the aforementioned things in the forefront of your mind.
- *
-*/
+
 void handle_arg(char* arg, int arg_no);
 void chip_security_checks();
 void handle_output();
