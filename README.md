@@ -38,6 +38,8 @@ I recommend using a linux operating system with my simple key generator tool her
 
 - Move the message with a secure USB (be wary of the firmware, buy it brand new at a store so it can't easily be intercepted and tampered with)
 
+- If there are any local surveillance & supply chain concerns, without looking anything up online take a day to drive somewhere you've never been before several hours away to buy your secure usbs or other hardware, it would be very difficult to intercept and tamper if you are not going anywhere you normally go and suddenly drive to a place you've never been or looked up online
+
 - Send the message to the recipient, and the reciepient should follow the same but in reverse, move the encrypted message to their offline rv64, rv32, mip ,ppc etc linux box for decryption in volatile memory only
 
 - You can send the message over any medium, even posting it on their facebook wall, but this depends on if you need to hide the fact you are communicating, if you do all else correct, you could write the encrypted message on your garage door and nobody could ever decipher it
