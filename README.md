@@ -5,7 +5,9 @@
 git clone https://github.com/justmedusty/cypher.git OR download source 
 
 cd cypher
+
 cmake .
+
 make
 
 (optional) sudo cp cypher /bin
