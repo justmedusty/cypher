@@ -56,9 +56,9 @@ char hex_chars[16] = {
 //internal state
 size_t length = 0;
 int operation = 0;
-char secret[MAX_SIZE_BYTES];
-char pad[MAX_SIZE_BYTES];
-char output[MAX_SIZE_BYTES];
+char secret[MAX_SIZE_BYTES] = {0};
+char pad[MAX_SIZE_BYTES] = {0};
+char output[MAX_SIZE_BYTES] = {0};
 
 void help() {
     printf(
@@ -149,15 +149,16 @@ void handle_raw_bits() {
     for (size_t i = 0; i < length; i++) {
         output[i] = (char)(secret[i] ^ pad[i]);
     }
+    output[length] = '\0';
 
     if (operation == ENCRYPT) {
 
         DEBUG_PRINT("handle_raw_bits: ENCRYPT branch: Length is %lu\n", length);
         printf("0x");
         for (size_t i = 0; i < length; i++) {
-            char c = output[i];
-            printf("%02X", c);
-            continue;
+            const char c = output[i];
+            printf("%02X", c & 0xFF);
+            fflush(stdout);
         }
         printf("\n");
         return;
@@ -196,7 +197,6 @@ uint8_t hex_char_to_int(const char c) {
     }
 
     printf("Hex character is not a valid hexadecimal character! Char : %lu\n", (uint64_t)c);
-    help();
     exit(1);
 }
 
@@ -268,7 +268,7 @@ void parse_pad(char* arg) {
         exit(1);
     }
 
-    if (len < (length * 2)) {
+    if (len - 2 < (length * 2)) {
         printf("Pad is too short! Exiting...\n");
         exit(1);
     }
@@ -285,6 +285,8 @@ void parse_pad(char* arg) {
     uint64_t pad_index = 0;
 
 
+
+
     for (size_t i = 2; i < length * 2; i += 2) {
         if (i + 1 == length * 2) {
             pad[pad_index++] = hex_char_to_int(arg[i]);
@@ -294,19 +296,16 @@ void parse_pad(char* arg) {
     }
 
     if (length % 2 != 0) {
-        if (pad_index == len) {
+        if (pad_index == len / 2) {
             printf("Pad is too short!");
             help();
             exit(1);
         }
         pad[pad_index++] = hex_char_to_int(arg[length - 1]);
     }
+
     DEBUG_PRINT("parse_pad: pad_index is %lu while length is %lu\n", pad_index, length);
-    if (pad_index < length) {
-        printf("The pad is too short! Length of pad is %lu : secret %lu\n", pad_index,
-               length);
-        exit(1);
-    }
+
 }
 
 
