@@ -37,9 +37,6 @@ void handle_raw_bits();
 
 #define NUM_ARGS 4
 
-#define CAESAR 0
-#define BITS 1
-
 #define ENCRYPT 0
 #define DECRYPT 1
 //maximum size we will work with , this should just be text or small files not anything massive
