@@ -22,6 +22,7 @@ WARN:Be wary using modern intel or amd chips, they have a known management engin
 WARN:Be wary using modern intel or amd chips, they have a known management engine backdoor. If this secret is of life or death stakes, do not use this machine!
 Secret: what the fuck is up kyle
 
+All pads AND encrypted secrets require the 0x prefix and must be in hex format.
 
 How secure you want this to be is up to you. A proper implementation of one time pad is unbreakable. The keys need to be as random as possible, generated from a good source of entropy. They should only be used once,
 then destroyed. You must pass the keys off in secure manner, you can preselect keys that are longer than what you really need, cypher will just trim off any extra key material. This can be a basic toy for encrypting basic messages or it could be a serious tool that could evade even the most sophisticated surveillance techniques.
